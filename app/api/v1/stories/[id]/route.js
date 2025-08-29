@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 export async function GET(req, { params }) {
   try {
     await connectMongoDB();
-    
+
     const story = await Story.findById(params.id)
       .populate("author", "name username photo verified")
       .select("-__v");
@@ -20,7 +20,7 @@ export async function GET(req, { params }) {
 
     return NextResponse.json({
       success: true,
-      data: story
+      data: story,
     });
   } catch (err) {
     console.error("GET /stories/[id] error:", err);
@@ -36,31 +36,32 @@ export async function PUT(req, { params }) {
 
     // Validate category if provided
     if (body.category) {
-      const validCategories = ["horror", "thriller", "supernatural", "psychological", "gothic", "mystery", "dark fantasy", "paranormal"];
+      const validCategories = [
+        "horror",
+        "thriller",
+        "supernatural",
+        "psychological",
+        "gothic",
+        "mystery",
+        "dark fantasy",
+        "paranormal",
+      ];
       if (!validCategories.includes(body.category.toLowerCase())) {
         return NextResponse.json(
-          { error: "Invalid category. Must be one of: " + validCategories.join(", ") },
+          {
+            error:
+              "Invalid category. Must be one of: " + validCategories.join(", "),
+          },
           { status: 400 }
         );
       }
     }
 
-    // Validate tags if provided
-    if (body.tags && body.tags.length > 0) {
-      const validTags = ["ghost", "murder", "haunted", "mystery", "dark", "suspense", "blood", "nightmare", 
-                        "demon", "witch", "vampire", "zombie", "serial-killer", "possession", "curse", "death", "revenge"];
-      const invalidTags = body.tags.filter(tag => !validTags.includes(tag));
-      if (invalidTags.length > 0) {
-        return NextResponse.json(
-          { error: "Invalid tags: " + invalidTags.join(", ") },
-          { status: 400 }
-        );
-      }
-    }
+    // Tags are now free-form and don't require validation
 
     const updateData = {
       ...body,
-      lastEditedAt: new Date()
+      lastEditedAt: new Date(),
     };
 
     // Set published date when status changes to published
@@ -71,11 +72,10 @@ export async function PUT(req, { params }) {
       }
     }
 
-    const story = await Story.findByIdAndUpdate(
-      params.id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate("author", "name username photo verified");
+    const story = await Story.findByIdAndUpdate(params.id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("author", "name username photo verified");
 
     if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
@@ -84,13 +84,13 @@ export async function PUT(req, { params }) {
     return NextResponse.json({
       success: true,
       message: "Story updated successfully",
-      data: story
+      data: story,
     });
   } catch (err) {
     console.error("PUT /stories/[id] error:", err);
-    
-    if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(e => e.message);
+
+    if (err.name === "ValidationError") {
+      const errors = Object.values(err.errors).map((e) => e.message);
       return NextResponse.json(
         { error: "Validation failed: " + errors.join(", ") },
         { status: 400 }
@@ -105,21 +105,21 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await connectMongoDB();
-    
+
     const story = await Story.findById(params.id);
     if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
     }
 
     // Soft delete by updating status instead of hard delete
-    await Story.findByIdAndUpdate(params.id, { 
+    await Story.findByIdAndUpdate(params.id, {
       status: "deleted",
-      deletedAt: new Date()
+      deletedAt: new Date(),
     });
 
     return NextResponse.json({
       success: true,
-      message: "Story deleted successfully"
+      message: "Story deleted successfully",
     });
   } catch (err) {
     console.error("DELETE /stories/[id] error:", err);

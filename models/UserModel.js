@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema(
     // Roles & auth
     role: {
       type: String,
-      enum: ["reader", "author", "admin", "guide"],
-      default: "reader",
+      enum: ["user", "admin", "guides"],
+      default: "user",
     },
     verified: {
       type: Boolean,
@@ -59,7 +59,7 @@ const userSchema = new mongoose.Schema(
     likedComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    
+
     // Stats
     followersCount: { type: Number, default: 0 },
     followingCount: { type: Number, default: 0 },

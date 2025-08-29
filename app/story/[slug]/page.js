@@ -3,20 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { auth } from "@/lib/auth";
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Bookmark, 
-  Eye, 
-  Clock, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  Eye,
+  Clock,
   User,
   ArrowUp,
   ArrowDown,
   Reply,
   MoreHorizontal,
   Skull,
-  Ghost
+  Ghost,
 } from "lucide-react";
 import { Lora, Merriweather, Roboto_Slab } from "next/font/google";
 import Link from "next/link";
@@ -46,7 +46,10 @@ const fetchStoryData = async (slug) => {
   if (!slug) return null;
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXTAUTH_URL || 'http://localhost:3001';
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.NEXTAUTH_URL ||
+      "http://localhost:3000";
     const res = await fetch(
       `${baseUrl}/api/v1/stories/slug/${slug}`,
       { cache: "no-store" } // disable caching
@@ -111,7 +114,9 @@ const Page = async ({ params }) => {
         <Card className="bg-card/50 backdrop-blur-sm border-border text-center p-8">
           <Ghost className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-2xl font-bold mb-2">Story Lost in the Void</h2>
-          <p className="text-muted-foreground">The tale you seek has vanished into darkness.</p>
+          <p className="text-muted-foreground">
+            The tale you seek has vanished into darkness.
+          </p>
         </Card>
       </div>
     );
@@ -134,26 +139,35 @@ const Page = async ({ params }) => {
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
               {story.description}
             </p>
-            
+
             {/* Author & Meta */}
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
                 <Avatar className="w-12 h-12 border-2 border-primary/30">
-                  <AvatarImage src={story.author?.photo} alt={story.author?.name} />
+                  <AvatarImage
+                    src={story.author?.photo}
+                    alt={story.author?.name}
+                  />
                   <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white">
-                    {story.author?.name?.[0] || 'A'}
+                    {story.author?.name?.[0] || "A"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-foreground">{story.author?.name}</p>
-                  <p className="text-sm text-muted-foreground">@{story.author?.username}</p>
+                  <p className="font-semibold text-foreground">
+                    {story.author?.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    @{story.author?.username}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  <span>{formatDistanceToNow(new Date(story.createdAt))} ago</span>
+                  <span>
+                    {formatDistanceToNow(new Date(story.createdAt))} ago
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
@@ -211,7 +225,11 @@ const Page = async ({ params }) => {
               <CardContent className="p-6">
                 <div className="flex flex-wrap gap-2">
                   {story.categories?.map((cat) => (
-                    <Badge key={cat._id} variant="default" className="spooky-glow">
+                    <Badge
+                      key={cat._id}
+                      variant="default"
+                      className="spooky-glow"
+                    >
                       {cat.name}
                     </Badge>
                   ))}
@@ -234,7 +252,10 @@ const Page = async ({ params }) => {
             <Card className="bg-card/50 backdrop-blur-sm border-border sticky top-24">
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                  <Button variant="outline" className="flex items-center gap-2 hover:bg-red-500/10 hover:border-red-500/50">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 hover:bg-red-500/10 hover:border-red-500/50"
+                  >
                     <Heart className="w-4 h-4" />
                     <span>{story.likes || 0}</span>
                   </Button>
@@ -251,7 +272,7 @@ const Page = async ({ params }) => {
                     Share
                   </Button>
                 </div>
-                
+
                 <div className="text-center text-sm text-muted-foreground">
                   <p className="mb-2">Enjoyed this dark tale?</p>
                   <Button className="w-full spooky-glow">
@@ -277,11 +298,15 @@ const Page = async ({ params }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Comments</span>
-                  <span className="font-medium">{story.commentsCount || 0}</span>
+                  <span className="font-medium">
+                    {story.commentsCount || 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Reading Time</span>
-                  <span className="font-medium">{Math.ceil((story.content?.length || 0) / 1000)} min</span>
+                  <span className="font-medium">
+                    {Math.ceil((story.content?.length || 0) / 1000)} min
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -293,11 +318,26 @@ const Page = async ({ params }) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
-                  { title: "The Midnight Visitor", author: "DarkScribe", likes: 234 },
-                  { title: "Whispers in the Void", author: "ShadowTeller", likes: 189 },
-                  { title: "The Last Confession", author: "NightWhisperer", likes: 156 }
+                  {
+                    title: "The Midnight Visitor",
+                    author: "DarkScribe",
+                    likes: 234,
+                  },
+                  {
+                    title: "Whispers in the Void",
+                    author: "ShadowTeller",
+                    likes: 189,
+                  },
+                  {
+                    title: "The Last Confession",
+                    author: "NightWhisperer",
+                    likes: 156,
+                  },
                 ].map((relatedStory, i) => (
-                  <div key={i} className="p-3 rounded-lg bg-background/50 hover:bg-background/70 transition-colors cursor-pointer">
+                  <div
+                    key={i}
+                    className="p-3 rounded-lg bg-background/50 hover:bg-background/70 transition-colors cursor-pointer"
+                  >
                     <h4 className="font-medium text-sm hover:text-primary transition-colors mb-1">
                       {relatedStory.title}
                     </h4>

@@ -6,31 +6,56 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Heart, 
-  Reply, 
-  MoreHorizontal, 
+import {
+  Heart,
+  Reply,
+  MoreHorizontal,
   Crown,
   PenTool,
   Eye,
   Ghost,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash,
+  Edit,
+  X,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 
-export default function Comment({ comment, onLike, onReply, session, depth = 0 }) {
+export default function Comment({
+  comment,
+  onLike,
+  onReply,
+  onEdit,
+  onDelete,
+  session,
+  depth = 0,
+}) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [showReplies, setShowReplies] = useState(true);
   const [submittingReply, setSubmittingReply] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   const getRoleIcon = (role) => {
     switch (role) {
-      case 'admin': return <Crown className="w-3 h-3 text-yellow-400" />;
-      case 'author': return <PenTool className="w-3 h-3 text-primary" />;
-      case 'guide': return <Ghost className="w-3 h-3 text-purple-400" />;
-      default: return <Eye className="w-3 h-3 text-muted-foreground" />;
+      case "admin":
+        return <Crown className="w-3 h-3 text-yellow-400" />;
+      case "author":
+        return <PenTool className="w-3 h-3 text-primary" />;
+      case "guide":
+        return <Ghost className="w-3 h-3 text-purple-400" />;
+      default:
+        return <Eye className="w-3 h-3 text-muted-foreground" />;
     }
   };
 
@@ -39,7 +64,7 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
       admin: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
       author: "bg-primary/10 text-primary border-primary/20",
       guide: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-      reader: "bg-gray-500/10 text-gray-400 border-gray-500/20"
+      reader: "bg-gray-500/10 text-gray-400 border-gray-500/20",
     };
     return colors[role] || colors.reader;
   };
@@ -63,19 +88,24 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
   const maxDepth = 3; // Limit nesting depth to prevent infinite nesting
 
   return (
-    <div className={`${depth > 0 ? 'ml-8 border-l border-border/30 pl-4' : ''}`}>
+    <div
+      className={`${depth > 0 ? "ml-8 border-l border-border/30 pl-4" : ""}`}
+    >
       <Card className="bg-background/30 border-border/50 hover:bg-background/40 transition-colors">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             {/* Avatar */}
             <div className="relative">
               <Avatar className="w-8 h-8 border border-border/50">
-                <AvatarImage src={comment.author?.photo} alt={comment.author?.name} />
+                <AvatarImage
+                  src={comment.author?.photo}
+                  alt={comment.author?.name}
+                />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white text-sm">
-                  {comment.author?.name?.[0] || 'U'}
+                  {comment.author?.name?.[0] || "U"}
                 </AvatarFallback>
               </Avatar>
-              {comment.author?.role === 'admin' && (
+              {comment.author?.role === "admin" && (
                 <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-0.5">
                   <Crown className="w-2 h-2 text-black" />
                 </div>
@@ -88,9 +118,16 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
                 <span className="font-medium text-foreground">
                   {comment.author?.name}
                 </span>
-                <Badge variant="outline" className={`text-xs px-1.5 py-0.5 ${getRoleBadgeColor(comment.author?.role)}`}>
+                <Badge
+                  variant="outline"
+                  className={`text-xs px-1.5 py-0.5 ${getRoleBadgeColor(
+                    comment.author?.role
+                  )}`}
+                >
                   {getRoleIcon(comment.author?.role)}
-                  <span className="ml-1 capitalize">{comment.author?.role}</span>
+                  <span className="ml-1 capitalize">
+                    {comment.author?.role}
+                  </span>
                 </Badge>
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(comment.createdAt))} ago
@@ -104,9 +141,58 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
               </div>
 
               {/* Comment Content */}
-              <div className="text-sm text-foreground mb-3 leading-relaxed">
-                {comment.content}
-              </div>
+              {isEditing ? (
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!editContent.trim()) return;
+
+                    setSubmittingEdit(true);
+                    try {
+                      await onEdit(comment._id, editContent);
+                      setIsEditing(false);
+                    } catch (error) {
+                      console.error("Error editing comment:", error);
+                    } finally {
+                      setSubmittingEdit(false);
+                    }
+                  }}
+                  className="space-y-3"
+                >
+                  <Textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="min-h-[80px] text-sm bg-background/50 border-border/50 focus:border-primary/50 resize-none"
+                    disabled={submittingEdit}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditContent(comment.content);
+                      }}
+                      disabled={submittingEdit}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={!editContent.trim() || submittingEdit}
+                      className="spooky-glow"
+                    >
+                      {submittingEdit ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="text-sm text-foreground mb-3 leading-relaxed">
+                  {comment.content}
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex items-center gap-4">
@@ -114,10 +200,18 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
                   variant="ghost"
                   size="sm"
                   onClick={() => onLike(comment._id)}
-                  className={`h-8 px-2 ${comment.isLiked ? 'text-red-400 hover:text-red-300' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`h-8 px-2 ${
+                    comment.isLiked
+                      ? "text-red-400 hover:text-red-300"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                   disabled={!session}
                 >
-                  <Heart className={`w-3 h-3 mr-1 ${comment.isLiked ? 'fill-current' : ''}`} />
+                  <Heart
+                    className={`w-3 h-3 mr-1 ${
+                      comment.isLiked ? "fill-current" : ""
+                    }`}
+                  />
                   <span className="text-xs">{comment.likes || 0}</span>
                 </Button>
 
@@ -147,18 +241,44 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
                       <ChevronDown className="w-3 h-3 mr-1" />
                     )}
                     <span className="text-xs">
-                      {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                      {comment.replies.length}{" "}
+                      {comment.replies.length === 1 ? "reply" : "replies"}
                     </span>
                   </Button>
                 )}
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground hover:text-foreground ml-auto"
-                >
-                  <MoreHorizontal className="w-3 h-3" />
-                </Button>
+                {session &&
+                  (session.user.userId === comment.author._id ||
+                    session.user.role === "admin") && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-muted-foreground hover:text-foreground ml-auto"
+                        >
+                          <MoreHorizontal className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem
+                          onClick={() => setIsEditing(true)}
+                          className="text-blue-500 focus:text-blue-500"
+                        >
+                          <Edit className="w-3 h-3 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => onDelete(comment._id)}
+                          className="text-red-500 focus:text-red-500"
+                        >
+                          <Trash className="w-3 h-3 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
               </div>
 
               {/* Reply Form */}
@@ -166,9 +286,12 @@ export default function Comment({ comment, onLike, onReply, session, depth = 0 }
                 <form onSubmit={handleSubmitReply} className="mt-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <Avatar className="w-6 h-6 border border-border/50">
-                      <AvatarImage src={session.user.image} alt={session.user.name} />
+                      <AvatarImage
+                        src={session.user.image}
+                        alt={session.user.name}
+                      />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white text-xs">
-                        {session.user.name?.[0] || 'U'}
+                        {session.user.name?.[0] || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">

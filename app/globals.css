@@ -116,13 +116,8 @@
 
   .evidark-logo {
     font-family: "Creepster", cursive;
-    background: linear-gradient(45deg, #dc2626, #b91c1c, #7f1d1d, #dc2626);
-    background-size: 400% 400%;
-    animation: spooky-gradient 3s ease-in-out infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+    color: #dc2626;
+    text-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
     filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.3));
   }
 

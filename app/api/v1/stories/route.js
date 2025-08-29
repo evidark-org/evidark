@@ -20,7 +20,17 @@ export async function GET(req) {
       "slug",
       "description",
       "status",
+      "category",
       "author",
+      "tags",
+      "readingTime",
+      "views",
+      "likesCount",
+      "commentsCount",
+      "bookmarksCount",
+      "upvotes",
+      "downvotes",
+      "createdAt",
     ];
 
     const features = new APIFeatures(Story.find(), queryObj)
@@ -89,26 +99,27 @@ export async function POST(req) {
     }
 
     // Validate category
-    const validCategories = ["horror", "thriller", "supernatural", "psychological", "gothic", "mystery", "dark fantasy", "paranormal"];
+    const validCategories = [
+      "horror",
+      "thriller",
+      "supernatural",
+      "psychological",
+      "gothic",
+      "mystery",
+      "dark fantasy",
+      "paranormal",
+    ];
     if (!validCategories.includes(body.category.toLowerCase())) {
       return NextResponse.json(
-        { error: "Invalid category. Must be one of: " + validCategories.join(", ") },
+        {
+          error:
+            "Invalid category. Must be one of: " + validCategories.join(", "),
+        },
         { status: 400 }
       );
     }
 
-    // Validate tags if provided
-    const validTags = ["ghost", "murder", "haunted", "mystery", "dark", "suspense", "blood", "nightmare", 
-                      "demon", "witch", "vampire", "zombie", "serial-killer", "possession", "curse", "death", "revenge"];
-    if (body.tags && body.tags.length > 0) {
-      const invalidTags = body.tags.filter(tag => !validTags.includes(tag));
-      if (invalidTags.length > 0) {
-        return NextResponse.json(
-          { error: "Invalid tags: " + invalidTags.join(", ") },
-          { status: 400 }
-        );
-      }
-    }
+    // Tags are now free-form and don't require validation
 
     // Create story with enhanced data
     const storyData = {
@@ -125,22 +136,24 @@ export async function POST(req) {
     };
 
     const story = await Story.create(storyData);
-    
+
     // Populate author information for response
     await story.populate("author", "name username photo");
 
-    return NextResponse.json({
-      success: true,
-      message: "Story created successfully",
-      data: story
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Story created successfully",
+        data: story,
+      },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("POST /stories error:", err);
-    
+
     // Handle validation errors
-    if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(e => e.message);
+    if (err.name === "ValidationError") {
+      const errors = Object.values(err.errors).map((e) => e.message);
       return NextResponse.json(
         { error: "Validation failed: " + errors.join(", ") },
         { status: 400 }

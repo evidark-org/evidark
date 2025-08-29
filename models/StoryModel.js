@@ -13,44 +13,46 @@ const storySchema = new mongoose.Schema(
     },
     description: { type: String, maxlength: 500 },
     content: { type: String, required: true },
-    
+
     // Category moved to dynamic, database-driven list; keep as free string here
     category: {
       type: String,
       required: true,
       trim: true,
     },
-    
+
     // Free-form tags to allow user-defined tagging
-    tags: [{
-      type: String,
-      trim: true,
-    }],
-    
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
     // Story metadata
     readingTime: { type: Number, default: 0 }, // in minutes
     wordCount: { type: Number, default: 0 },
-    
+
     // Content warnings for dark stories
-    contentWarnings: [{
-      type: String,
-      enum: ["violence", "gore", "psychological-horror", "death", "suicide", "self-harm", 
-             "sexual-content", "strong-language", "substance-abuse", "child-endangerment"]
-    }],
-    
+    contentWarnings: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
     // Age rating
     ageRating: {
       type: String,
-      enum: ["13+", "16+", "18+"],
-      default: "16+",
+      trim: true,
     },
-    
+
     status: {
       type: String,
       enum: ["draft", "published", "archived", "under-review"],
       default: "draft",
     },
-    
+
     // Engagement metrics
     views: { type: Number, default: 0 },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -60,41 +62,41 @@ const storySchema = new mongoose.Schema(
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     bookmarksCount: { type: Number, default: 0 },
     shares: { type: Number, default: 0 },
-    
+
     // Reddit-like voting system
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    
+
     // Featured and trending
     featured: { type: Boolean, default: false },
     trending: { type: Boolean, default: false },
-    
+
     // Publishing details
     publishedAt: { type: Date },
     lastEditedAt: { type: Date },
-    
+
     // SEO and metadata
     metaTitle: { type: String },
     metaDescription: { type: String },
-    
+
     // Story series support
     series: {
       name: { type: String },
       part: { type: Number },
-      totalParts: { type: Number }
-    }
+      totalParts: { type: Number },
+    },
   },
-  { 
+  {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 );
 
 // ----------------------------
 // Virtual for reading time calculation
 // ----------------------------
-storySchema.virtual('estimatedReadingTime').get(function() {
+storySchema.virtual("estimatedReadingTime").get(function () {
   const wordsPerMinute = 200;
   return Math.ceil(this.wordCount / wordsPerMinute);
 });
@@ -105,8 +107,8 @@ storySchema.virtual('estimatedReadingTime').get(function() {
 storySchema.pre("save", async function (next) {
   // Calculate word count and reading time
   if (this.content) {
-    const textContent = this.content.replace(/<[^>]*>/g, ''); // Remove HTML tags
-    const words = textContent.split(/\s+/).filter(word => word.length > 0);
+    const textContent = this.content.replace(/<[^>]*>/g, ""); // Remove HTML tags
+    const words = textContent.split(/\s+/).filter((word) => word.length > 0);
     this.wordCount = words.length;
     this.readingTime = Math.ceil(words.length / 200); // 200 words per minute
   }
@@ -117,7 +119,11 @@ storySchema.pre("save", async function (next) {
   }
 
   // Set published date when status changes to published
-  if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
+  if (
+    this.isModified("status") &&
+    this.status === "published" &&
+    !this.publishedAt
+  ) {
     this.publishedAt = new Date();
   }
 

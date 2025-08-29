@@ -18,8 +18,10 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: " EviDark - Where Evidence Meets Darkness",
-  description: "Professional dark stories platform - Uncover mysteries, share evidence-based narratives, and explore the shadows of truth.",
-  keywords: "dark stories, mysteries, evidence, horror, supernatural, investigation, true crime",
+  description:
+    "Professional dark stories platform - Uncover mysteries, share evidence-based narratives, and explore the shadows of truth.",
+  keywords:
+    "dark stories, mysteries, evidence, horror, supernatural, investigation, true crime",
   authors: [{ name: "EviDark Team" }],
   creator: "EviDark",
   publisher: "EviDark",
@@ -28,10 +30,11 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
   openGraph: {
     title: " EviDark - Where Evidence Meets Darkness",
-    description: "Professional dark stories platform - Uncover mysteries and explore evidence-based narratives.",
+    description:
+      "Professional dark stories platform - Uncover mysteries and explore evidence-based narratives.",
     url: "/",
     siteName: "EviDark",
     images: [
@@ -50,23 +53,23 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.className} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}>
+      <body
+        className={`${geistSans.className} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+      >
         <QueryProvider>
           <SessionProvider>
             <div className="fixed top-0 z-50 w-full bg-background/95 backdrop-blur-sm border-b border-border">
               <Header />
             </div>
-            <div className="pt-16">
-              {children}
-            </div>
-            <Toaster 
-              position="bottom-right" 
+            <div className="pt-16">{children}</div>
+            <Toaster
+              position="bottom-right"
               theme="dark"
               toastOptions={{
                 style: {
-                  background: '#111113',
-                  color: '#e4e4e7',
-                  border: '1px solid #27272a',
+                  background: "#111113",
+                  color: "#e4e4e7",
+                  border: "1px solid #27272a",
                 },
               }}
             />
