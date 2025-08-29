@@ -1,182 +1,318 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import axios from "axios";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast, Toaster } from "react-hot-toast"; // ShadCN-compatible toast
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Users, 
+  BookOpen, 
+  Eye, 
+  Heart, 
+  Calendar, 
+  MapPin, 
+  Mail,
+  UserPlus,
+  UserMinus,
+  Settings,
+  Crown,
+  Skull,
+  Ghost,
+  TrendingUp
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+import { toast } from "react-hot-toast";
 
-export default function UserProfilePage({ session }) {
-  const { username } = useParams();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [editableFields, setEditableFields] = useState({});
-  const [saving, setSaving] = useState(false);
+export default function UserProfile({ user, session }) {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const isCurrentUser = session?.user?.username === username;
+  const isCurrentUser = session?.user?.userId === user._id.toString();
 
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await axios.get(`/api/v1/users/username/${username}`);
-        setUser(res.data);
-        setEditableFields({
-          name: res.data.name || "",
-          email: res.data.email || "",
-          photo: res.data.photo || "",
-          bio: res.data.bio || "",
-          dob: res.data.dob || "",
-          address: res.data.address || "",
-          state: res.data.state || "",
-          country: res.data.country || "",
-          gender: res.data.gender || "",
-          mobileNumber: res.data.mobileNumber || "",
-          status: res.data.status || "",
-          subscription: res.data.subscription || false,
-          role: res.data.role || "reader",
-          accountType: res.data.accountType || "Personal",
-        });
-      } catch (err) {
-        toast.error("Failed to load user data");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+  const handleFollow = async () => {
+    if (!session) {
+      toast.error("Please sign in to follow users");
+      return;
     }
-    fetchUser();
-  }, [username]);
-  console.log(editableFields.photo);
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setEditableFields((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
 
-  const handleSave = async () => {
-    if (!isCurrentUser) return;
-
-    setSaving(true);
+    setFollowLoading(true);
     try {
-      const res = await axios.patch(
-        `/api/v1/users/${user._id}`,
-        editableFields
-      );
-      setUser(res.data);
-      toast.success("Profile updated successfully!");
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to update profile");
+      const response = await fetch(`/api/v1/users/${user._id}/follow`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: session.user.userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsFollowing(data.following);
+        toast.success(data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to follow user");
     } finally {
-      setSaving(false);
+      setFollowLoading(false);
     }
   };
 
-  if (loading) return <p className="text-center py-10">Loading...</p>;
-  if (!user) return <p className="text-center py-10">User not found</p>;
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'admin': return <Crown className="w-4 h-4 text-yellow-400" />;
+      case 'author': return <BookOpen className="w-4 h-4 text-primary" />;
+      case 'guide': return <Ghost className="w-4 h-4 text-purple-400" />;
+      default: return <Eye className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  const getRoleBadgeColor = (role) => {
+    const colors = {
+      admin: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+      author: "bg-primary/10 text-primary border-primary/20",
+      guide: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      reader: "bg-gray-500/10 text-gray-400 border-gray-500/20"
+    };
+    return colors[role] || colors.reader;
+  };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
-      <Toaster position="top-right" reverseOrder={false} />
-      <Card className="rounded-xs shadow-none">
-        <CardHeader>
-          <CardTitle>{user.name || username}'s Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Profile Picture */}
-          <div className="flex items-center space-x-4">
-            <img
-              src={editableFields.photo || "/default-avatar.png"}
-              alt="Profile"
-              className="w-24 h-24 rounded-xs object-cover border"
-            />
-          </div>
+    <div className="container mx-auto px-6 py-8">
+      {/* Profile Header */}
+      <Card className="bg-card/50 backdrop-blur-sm border-border mb-8">
+        <CardContent className="p-8">
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="w-32 h-32 border-4 border-primary/20">
+                <AvatarImage src={user.photo} alt={user.name} />
+                <AvatarFallback className="text-3xl bg-primary/10">
+                  {user.name?.[0] || user.username?.[0] || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              {user.role === 'admin' && (
+                <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-2">
+                  <Crown className="w-4 h-4 text-black" />
+                </div>
+              )}
+            </div>
 
-          {/* Username (not editable) */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Username</Label>
-            <Input
-              value={user.username}
-              disabled
-              className="col-span-3 rounded-xs bg-gray-100"
-            />
-          </div>
-
-          {/* Editable fields if current user */}
-
-          <>
-            {[
-              "name",
-              "email",
-              "bio",
-              "dob",
-              "address",
-              "state",
-              "country",
-              "gender",
-              "mobileNumber",
-              "status",
-            ].map((field) => (
-              <div key={field} className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">
-                  {field.charAt(0).toUpperCase() + field.slice(1)}
-                </Label>
-                {field === "bio" ? (
-                  <Textarea
-                    disabled={!isCurrentUser}
-                    name={field}
-                    value={editableFields[field]}
-                    onChange={handleChange}
-                    className="col-span-3 rounded-xs resize-none"
-                    rows={3}
-                  />
-                ) : field === "dob" ? (
-                  <Input
-                    disabled={!isCurrentUser}
-                    type="date"
-                    name={field}
-                    value={
-                      editableFields[field]
-                        ? editableFields[field].split("T")[0]
-                        : ""
-                    }
-                    onChange={handleChange}
-                    className="col-span-3 rounded-xs"
-                  />
-                ) : (
-                  <Input
-                    disabled={!isCurrentUser}
-                    type="text"
-                    name={field}
-                    value={editableFields[field]}
-                    onChange={handleChange}
-                    className="col-span-3 rounded-xs"
-                  />
+            {/* User Info */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold">{user.name || user.username}</h1>
+                  <Badge variant="outline" className={getRoleBadgeColor(user.role)}>
+                    {getRoleIcon(user.role)}
+                    <span className="ml-1 capitalize">{user.role}</span>
+                  </Badge>
+                  {user.verified && (
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground">@{user.username}</p>
+                {user.bio && (
+                  <p className="text-foreground mt-2">{user.bio}</p>
                 )}
               </div>
-            ))}
-            <Button
-              className="rounded-xs mt-4"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-          </>
-          {!isCurrentUser && (
-            <Alert className="rounded-xs">
-              <AlertDescription>
-                You are viewing someone else's profile. You cannot edit it.
-              </AlertDescription>
-            </Alert>
-          )}
+
+              {/* Stats */}
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-1">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  <span className="font-semibold">{user.storiesCount || 0}</span>
+                  <span className="text-muted-foreground">Stories</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="font-semibold">{user.followersCount || 0}</span>
+                  <span className="text-muted-foreground">Followers</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="font-semibold">{user.followingCount || 0}</span>
+                  <span className="text-muted-foreground">Following</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-primary" />
+                  <span className="font-semibold">{user.totalViews || 0}</span>
+                  <span className="text-muted-foreground">Views</span>
+                </div>
+              </div>
+
+              {/* Meta Info */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>Joined {formatDistanceToNow(new Date(user.createdAt))} ago</span>
+                </div>
+                {user.address && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{user.address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              {isCurrentUser ? (
+                <Link href="/settings">
+                  <Button variant="outline" className="spooky-glow">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={isFollowing ? "bg-destructive hover:bg-destructive/90" : "spooky-glow"}
+                  >
+                    {followLoading ? (
+                      "Loading..."
+                    ) : isFollowing ? (
+                      <>
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        Unfollow
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline">
+                    <Mail className="w-4 h-4 mr-2" />
+                    Message
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Profile Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="stories">Stories</TabsTrigger>
+          <TabsTrigger value="followers">Followers</TabsTrigger>
+          <TabsTrigger value="following">Following</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Stats Cards */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{user.totalViews || 0}</div>
+                    <div className="text-xs text-muted-foreground">Total Views</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{user.totalLikes || 0}</div>
+                    <div className="text-xs text-muted-foreground">Total Likes</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{user.xp || 0}</div>
+                    <div className="text-xs text-muted-foreground">XP Points</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">{user.creatorScore || 0}</div>
+                    <div className="text-xs text-muted-foreground">Creator Score</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Info */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border">
+              <CardHeader>
+                <CardTitle>Account Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Account Type:</span>
+                  <span>{user.accountType || 'Personal'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span>{user.status || 'Active'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subscription:</span>
+                  <Badge variant={user.subscription ? "default" : "secondary"}>
+                    {user.subscription ? "Premium" : "Free"}
+                  </Badge>
+                </div>
+                {user.email && isCurrentUser && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span className="text-sm">{user.email}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stories" className="mt-6">
+          <Card className="bg-card/50 backdrop-blur-sm border-border">
+            <CardHeader>
+              <CardTitle>Published Stories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Stories will be displayed here once implemented.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="followers" className="mt-6">
+          <Card className="bg-card/50 backdrop-blur-sm border-border">
+            <CardHeader>
+              <CardTitle>Followers ({user.followersCount || 0})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Followers list will be displayed here once implemented.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="following" className="mt-6">
+          <Card className="bg-card/50 backdrop-blur-sm border-border">
+            <CardHeader>
+              <CardTitle>Following ({user.followingCount || 0})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Following list will be displayed here once implemented.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

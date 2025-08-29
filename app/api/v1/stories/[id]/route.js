@@ -6,20 +6,24 @@ import { NextResponse } from "next/server";
 export async function GET(req, { params }) {
   try {
     await connectMongoDB();
+    
     const story = await Story.findById(params.id)
-      .populate("author", "name email")
-      .populate("categories", "name")
-      .populate("tags", "name")
-      .populate("media", "url type")
-      .populate("likes")
-      .populate("bookmarks")
-      .populate("comments");
+      .populate("author", "name username photo verified")
+      .select("-__v");
 
-    if (!story)
+    if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    }
 
-    return NextResponse.json(story);
+    // Increment view count
+    await Story.findByIdAndUpdate(params.id, { $inc: { views: 1 } });
+
+    return NextResponse.json({
+      success: true,
+      data: story
+    });
   } catch (err) {
+    console.error("GET /stories/[id] error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -30,27 +34,69 @@ export async function PUT(req, { params }) {
     await connectMongoDB();
     const body = await req.json();
 
+    // Validate category if provided
+    if (body.category) {
+      const validCategories = ["horror", "thriller", "supernatural", "psychological", "gothic", "mystery", "dark fantasy", "paranormal"];
+      if (!validCategories.includes(body.category.toLowerCase())) {
+        return NextResponse.json(
+          { error: "Invalid category. Must be one of: " + validCategories.join(", ") },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate tags if provided
+    if (body.tags && body.tags.length > 0) {
+      const validTags = ["ghost", "murder", "haunted", "mystery", "dark", "suspense", "blood", "nightmare", 
+                        "demon", "witch", "vampire", "zombie", "serial-killer", "possession", "curse", "death", "revenge"];
+      const invalidTags = body.tags.filter(tag => !validTags.includes(tag));
+      if (invalidTags.length > 0) {
+        return NextResponse.json(
+          { error: "Invalid tags: " + invalidTags.join(", ") },
+          { status: 400 }
+        );
+      }
+    }
+
+    const updateData = {
+      ...body,
+      lastEditedAt: new Date()
+    };
+
+    // Set published date when status changes to published
+    if (body.status === "published") {
+      const existingStory = await Story.findById(params.id);
+      if (!existingStory.publishedAt) {
+        updateData.publishedAt = new Date();
+      }
+    }
+
     const story = await Story.findByIdAndUpdate(
       params.id,
-      {
-        ...body,
-        publishedAt: body.status === "published" ? new Date() : null,
-      },
-      { new: true }
-    )
-      .populate("author", "name email")
-      .populate("categories", "name")
-      .populate("tags", "name")
-      .populate("media", "url type")
-      .populate("likes")
-      .populate("bookmarks")
-      .populate("comments");
+      updateData,
+      { new: true, runValidators: true }
+    ).populate("author", "name username photo verified");
 
-    if (!story)
+    if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    }
 
-    return NextResponse.json(story);
+    return NextResponse.json({
+      success: true,
+      message: "Story updated successfully",
+      data: story
+    });
   } catch (err) {
+    console.error("PUT /stories/[id] error:", err);
+    
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return NextResponse.json(
+        { error: "Validation failed: " + errors.join(", ") },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }
@@ -59,13 +105,24 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await connectMongoDB();
-    const story = await Story.findByIdAndDelete(params.id);
-
-    if (!story)
+    
+    const story = await Story.findById(params.id);
+    if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    }
 
-    return NextResponse.json({ message: "Story deleted successfully" });
+    // Soft delete by updating status instead of hard delete
+    await Story.findByIdAndUpdate(params.id, { 
+      status: "deleted",
+      deletedAt: new Date()
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Story deleted successfully"
+    });
   } catch (err) {
+    console.error("DELETE /stories/[id] error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

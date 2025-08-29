@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      select: false, // Hide password by default
     },
     photo: {
       type: String,
@@ -55,6 +56,16 @@ const userSchema = new mongoose.Schema(
     // Relationships
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bookmark" }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Like" }],
+    likedComments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    
+    // Stats
+    followersCount: { type: Number, default: 0 },
+    followingCount: { type: Number, default: 0 },
+    storiesCount: { type: Number, default: 0 },
+    totalViews: { type: Number, default: 0 },
+    totalLikes: { type: Number, default: 0 },
 
     // Account type
     accountType: {

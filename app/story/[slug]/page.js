@@ -1,9 +1,28 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { auth } from "@/lib/auth";
-import { Pen } from "lucide-react";
+import { 
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Bookmark, 
+  Eye, 
+  Clock, 
+  User,
+  ArrowUp,
+  ArrowDown,
+  Reply,
+  MoreHorizontal,
+  Skull,
+  Ghost
+} from "lucide-react";
 import { Lora, Merriweather, Roboto_Slab } from "next/font/google";
 import Link from "next/link";
 import React from "react";
+import CommentSection from "@/app/_components/comments/CommentSection";
+import { formatDistanceToNow } from "date-fns";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -27,8 +46,9 @@ const fetchStoryData = async (slug) => {
   if (!slug) return null;
 
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXTAUTH_URL || 'http://localhost:3001';
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/stories/slug/${slug}`,
+      `${baseUrl}/api/v1/stories/slug/${slug}`,
       { cache: "no-store" } // disable caching
     );
 
@@ -83,84 +103,216 @@ export async function generateMetadata({ params }) {
 const Page = async ({ params }) => {
   const { slug } = await params;
   const story = await fetchStoryData(slug);
-  console.log(story);
+  const session = await auth();
 
   if (!story) {
     return (
-      <div className="mt-44 text-center text-red-600">Story not found.</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="bg-card/50 backdrop-blur-sm border-border text-center p-8">
+          <Ghost className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Story Lost in the Void</h2>
+          <p className="text-muted-foreground">The tale you seek has vanished into darkness.</p>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="mt-6 flex flex-col items-center p-1">
-      <div className="w-full max-w-[860px] flex flex-col items-center">
-        <div className="min-h-screen  ">
-          {/* Title & Author */}
-          <header className="mb-4 border-b  pb-6">
-            <p className="font-medium text-red-800 mb-4">EVIDARK ORIGINALS</p>
-            <h1 className="text-6xl font-bold tracking-tight">{story.title}</h1>
-            {/* <div className="flex items-center gap-3 mt-4 ">
-              <img
-                src={story.author.photo || "/default-avatar.png"}
-                alt={story.author.name}
-                width={42}
-                height={42}
-                className="rounded-full"
-              />
-              <div className="text-sm">
-                <p className="font-semibold">{story.author.name}</p>
-                <p className="">@{story.author.username}</p>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
+      {/* Spooky Header */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-red-950/20 via-red-900/10 to-red-950/20 border-b border-border/50">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNkYzI2MjYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50"></div>
+        <div className="container mx-auto px-6 py-12 relative">
+          <div className="max-w-4xl mx-auto">
+            <Badge className="mb-4 bg-red-600/10 text-red-400 border-red-600/20">
+              <Skull className="w-3 h-3 mr-1" />
+              EVIDARK ORIGINAL
+            </Badge>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-red-400 via-red-500 to-red-600 bg-clip-text text-transparent leading-tight">
+              {story.title}
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+              {story.description}
+            </p>
+            
+            {/* Author & Meta */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-12 h-12 border-2 border-primary/30">
+                  <AvatarImage src={story.author?.photo} alt={story.author?.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white">
+                    {story.author?.name?.[0] || 'A'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-foreground">{story.author?.name}</p>
+                  <p className="text-sm text-muted-foreground">@{story.author?.username}</p>
+                </div>
               </div>
-            </div> */}
+              
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{formatDistanceToNow(new Date(story.createdAt))} ago</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{story.views || 0} views</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <p className="mt-3 ">{story.description}</p>
-          </header>
-
+      <div className="container mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {/* Main Content */}
-          <article
-            className={`${merriweather.className} prose prose-invert prose-lg max-w-none leading-relaxed text-lg  mb-12 `}
-            dangerouslySetInnerHTML={{ __html: story.content }}
-          />
+          <div className="lg:col-span-3">
+            <Card className="bg-card/50 backdrop-blur-sm border-border mb-8">
+              <CardContent className="p-8">
+                <article
+                  className={`${merriweather.className} prose prose-invert prose-lg max-w-none leading-relaxed text-lg`}
+                  dangerouslySetInnerHTML={{ __html: story.content }}
+                />
+              </CardContent>
+            </Card>
 
-          {/* Categories & Tags */}
-          <section className="flex flex-wrap gap-2 mb-12">
-            {story.categories.map((cat) => (
-              <span
-                key={cat._id}
-                className="px-3 py-1 bg-gray-800 rounded-full text-xs tracking-wide uppercase"
-              >
-                {cat.name}
-              </span>
-            ))}
-            {story.tags.map((tag) => (
-              <span key={tag._id} className="px-3 py-1 rounded-full text-xs">
-                #{tag.name}
-              </span>
-            ))}
-          </section>
+            {/* Media Evidence */}
+            {story.media?.length > 0 && (
+              <Card className="bg-card/50 backdrop-blur-sm border-border mb-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Ghost className="w-5 h-5 text-primary" />
+                    Dark Evidence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {story.media.map((m) => (
+                      <div
+                        key={m._id}
+                        className="overflow-hidden rounded-lg border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
+                      >
+                        <img
+                          src={m.url}
+                          alt={m.type}
+                          className="object-cover w-full h-64 group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Media Evidence */}
-          {story.media.length > 0 && (
-            <section>
-              <h2 className="text-2xl font-bold mb-6">Evidence</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {story.media.map((m) => (
-                  <div
-                    key={m._id}
-                    className="overflow-hidden rounded-lg border border-gray-800 shadow-lg"
-                  >
-                    <img
-                      src={m.url}
-                      alt={m.type}
-                      width={600}
-                      height={400}
-                      className="object-cover w-full h-64 hover:scale-105 transition-transform duration-300"
-                    />
+            {/* Categories & Tags */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border mb-8">
+              <CardContent className="p-6">
+                <div className="flex flex-wrap gap-2">
+                  {story.categories?.map((cat) => (
+                    <Badge key={cat._id} variant="default" className="spooky-glow">
+                      {cat.name}
+                    </Badge>
+                  ))}
+                  {story.tags?.map((tag) => (
+                    <Badge key={tag._id} variant="outline">
+                      #{tag.name}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Comments Section */}
+            <CommentSection storyId={story._id} />
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Story Actions */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border sticky top-24">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <Button variant="outline" className="flex items-center gap-2 hover:bg-red-500/10 hover:border-red-500/50">
+                    <Heart className="w-4 h-4" />
+                    <span>{story.likes || 0}</span>
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{story.commentsCount || 0}</span>
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Bookmark className="w-4 h-4" />
+                    Save
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </Button>
+                </div>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  <p className="mb-2">Enjoyed this dark tale?</p>
+                  <Button className="w-full spooky-glow">
+                    Follow {story.author?.name}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Story Stats */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border">
+              <CardHeader>
+                <CardTitle className="text-lg">Story Statistics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Views</span>
+                  <span className="font-medium">{story.views || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Likes</span>
+                  <span className="font-medium">{story.likes || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Comments</span>
+                  <span className="font-medium">{story.commentsCount || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Reading Time</span>
+                  <span className="font-medium">{Math.ceil((story.content?.length || 0) / 1000)} min</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Related Stories */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border">
+              <CardHeader>
+                <CardTitle className="text-lg">More Dark Tales</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[
+                  { title: "The Midnight Visitor", author: "DarkScribe", likes: 234 },
+                  { title: "Whispers in the Void", author: "ShadowTeller", likes: 189 },
+                  { title: "The Last Confession", author: "NightWhisperer", likes: 156 }
+                ].map((relatedStory, i) => (
+                  <div key={i} className="p-3 rounded-lg bg-background/50 hover:bg-background/70 transition-colors cursor-pointer">
+                    <h4 className="font-medium text-sm hover:text-primary transition-colors mb-1">
+                      {relatedStory.title}
+                    </h4>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>by {relatedStory.author}</span>
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" />
+                        <span>{relatedStory.likes}</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
-              </div>
-            </section>
-          )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

@@ -3,68 +3,214 @@ import Logo from "./Logo";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import Search from "./Search";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { 
+  PenTool, 
+  User, 
+  LogIn, 
+  UserPlus, 
+  Home, 
+  Compass, 
+  BookOpen, 
+  Users, 
+  Ghost,
+  Skull,
+  Crown,
+  Settings,
+  LogOut,
+  Eye,
+  Heart,
+  Bookmark,
+  TrendingUp,
+  Menu,
+  X
+} from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = async () => {
   const session = await auth();
-  // console.log(session);
+  
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'admin': return <Crown className="w-3 h-3 text-yellow-400" />;
+      case 'author': return <PenTool className="w-3 h-3 text-primary" />;
+      case 'guide': return <Ghost className="w-3 h-3 text-purple-400" />;
+      default: return <Eye className="w-3 h-3 text-muted-foreground" />;
+    }
+  };
+  
   return (
-    <div className="px-4 py-1.5 text-neutral-800 top-0 w-full z-50 bg-white flex items-center gap-6">
-      <div className="justify-items-center self-center">
+    <header className="px-6 py-4 flex items-center justify-between w-full border-b border-border/50 bg-background/95 backdrop-blur-md">
+      <div className="flex items-center gap-8">
         <Logo />
+        
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200">
+            <Link href="/" className="flex items-center gap-2">
+              <Home className="w-4 h-4" />
+              <span className="font-medium">Home</span>
+            </Link>
+          </Button>
+          
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200">
+            <Link href="/trending" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span className="font-medium">Trending</span>
+            </Link>
+          </Button>
+          
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200">
+            <Link href="/categories" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              <span className="font-medium">Categories</span>
+            </Link>
+          </Button>
+          
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200">
+            <Link href="/community" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span className="font-medium">Community</span>
+            </Link>
+          </Button>
+        </nav>
       </div>
-      {/* <div className="font-medium text-sm flex items-center gap-6">
-        <Link href="/">Home</Link>
-        <Link href="/explore">Explore</Link>
-        <Link href="/categories">Categories</Link>
-        <Link href="/community">Community</Link>
-        <Link href="/about">About</Link>
-      </div> */}
-      <div className="ml-auto flex items-center gap-2">
-        {/* <div className="flex items-center gap-2">
-          <input
-            className="border-neutral-300 w-72 max-w-96 text-sm border rounded-xs px-4 py-1.5 font-medium placeholder:font-medium focus:outline-none focus:bg-orange-50 hover:bg-orange-50 placeholder:text-neutral-800"
-            placeholder="Search"
-          />
-        </div> */}
-        <Search />
+
+      <div className="flex items-center gap-4">
+        <div className="hidden md:block">
+          <Search />
+        </div>
+        
         {session?.user ? (
           <div className="flex items-center gap-3">
-            {session?.user?.role === "author" && (
-              <Link
-                href="/create"
-                className="px-5 py-2 text-xs font-bold rounded-xs border border-green-900 text-green-900 transition-all duration-200 hover:bg-green-50 hover:shadow-sm"
-              >
-                CREATE
-              </Link>
+            {/* Admin Button - visible only to admins */}
+            {session?.user?.role === "admin" && (
+              <Button asChild variant="outline" size="sm" className="border-yellow-500/40 text-yellow-400 hover:text-yellow-300">
+                <Link href="/admin" className="flex items-center gap-2">
+                  <Crown className="w-4 h-4" />
+                  <span className="font-medium">Admin</span>
+                </Link>
+              </Button>
             )}
-            <Link href={`/user/${session.user.username}`}>
-              <img
-                className="w-8.5 h-8.5 rounded-xs border border-orange-900"
-                alt="profile"
-                src={session?.user?.image}
-                width={20}
-                height={20}
-              />
-            </Link>
+            {/* Write Story Button - Enhanced */}
+            {(session?.user?.role === "author" || session?.user?.role === "admin") && (
+              <Button asChild size="sm" className="spooky-glow bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg shadow-red-500/25 transition-all duration-300">
+                <Link href="/create" className="flex items-center gap-2">
+                  <Skull className="w-4 h-4" />
+                  <span className="font-medium">Write Tale</span>
+                </Link>
+              </Button>
+            )}
+            
+            {/* User Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/30 hover:border-primary/60 transition-all duration-200">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={session?.user?.image} alt={session?.user?.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white text-sm font-bold">
+                      {session?.user?.name?.[0] || session?.user?.email?.[0] || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {session?.user?.role === 'admin' && (
+                    <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1">
+                      <Crown className="w-2 h-2 text-black" />
+                    </div>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 bg-card/95 backdrop-blur-md border-border/50" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium leading-none">{session?.user?.name}</p>
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                        {getRoleIcon(session?.user?.role)}
+                        <span className="ml-1 capitalize">{session?.user?.role}</span>
+                      </Badge>
+                    </div>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      @{session?.user?.username}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/user/${session.user.username}`} className="flex items-center gap-2 cursor-pointer">
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/bookmarks" className="flex items-center gap-2 cursor-pointer">
+                    <Bookmark className="w-4 h-4" />
+                    <span>Bookmarks</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/liked" className="flex items-center gap-2 cursor-pointer">
+                    <Heart className="w-4 h-4" />
+                    <span>Liked Stories</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/api/auth/signout" className="flex items-center gap-2 cursor-pointer text-red-400 hover:text-red-300">
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="px-5 py-2 text-xs font-bold rounded-xs border border-orange-900 text-orange-900 transition-all duration-200 hover:bg-orange-50 hover:shadow-sm"
-            >
-              LOG IN
-            </Link>
-            <Link
-              href="#"
-              className="px-5 py-2 text-xs font-bold rounded-xs border border-orange-900 bg-orange-900 text-white transition-all duration-200 hover:bg-orange-800 hover:shadow-md"
-            >
-              REGISTER
-            </Link>
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground border border-border/50 hover:border-border transition-all duration-200">
+              <Link href="/login" className="flex items-center gap-2">
+                <LogIn className="w-4 h-4" />
+                <span className="font-medium">Sign In</span>
+              </Link>
+            </Button>
+            
+            <Button asChild size="sm" className="spooky-glow bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg shadow-red-500/25 transition-all duration-300">
+              <Link href="/login" className="flex items-center gap-2">
+                <Ghost className="w-4 h-4" />
+                <span className="font-medium">Join the Darkness</span>
+              </Link>
+            </Button>
           </div>
         )}
+        
+        {/* Mobile Menu Button */}
+        <Button variant="ghost" size="sm" className="lg:hidden">
+          <Menu className="w-5 h-5" />
+        </Button>
       </div>
-    </div>
+    </header>
   );
 };
 

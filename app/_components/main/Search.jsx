@@ -1,74 +1,93 @@
 "use client";
 
 import React, { useState } from "react";
+import { Search as SearchIcon, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
-export default function Search() {
-  const [query, setQuery] = useState("");
-  const [focused, setFocused] = useState(false);
+const Search = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    category: "",
+    author: "",
+    tags: []
+  });
 
-  const items = [
-    "Next.js",
-    "React",
-    "TailwindCSS",
-    "shadcn/ui",
-    "MongoDB",
-    "Mongoose",
-  ];
-
-  const filteredItems = items.filter((item) =>
-    item.toLowerCase().includes(query.toLowerCase())
-  );
+  const handleSearch = (e) => {
+    e.preventDefault();
+    console.log("Searching for:", searchQuery, "with filters:", filters);
+  };
 
   return (
-    <div className="relative w-72 max-w-96">
-      {/* Input Field */}
-      <input
-        placeholder="Search..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setTimeout(() => setFocused(false), 150)}
-        className="border border-neutral-300 w-full text-sm px-4 py-1.5 font-medium 
-                   placeholder:font-medium placeholder:text-neutral-800 
-                   focus:outline-none 
-                   rounded-t-xs rounded-b-xs focus:rounded-b-none"
-      />
-      {/* Dropdown */}
-      {(focused || query.length > 0) && (
-        <div className="absolute top-full left-0 w-full z-50">
-          <Command className="border border-t-0 rounded-b-xs rounded-t-none">
-            <CommandList>
-              {filteredItems.length === 0 ? (
-                <CommandEmpty className="px-4 py-2 text-sm text-neutral-500">
-                  No results found.
-                </CommandEmpty>
-              ) : (
-                <CommandGroup heading="Suggestions">
-                  {filteredItems.map((item, idx) => (
-                    <CommandItem
-                      key={idx}
-                      onSelect={() => {
-                        setQuery(item);
-                        setFocused(false);
-                      }}
-                      className="cursor-pointer px-4 py-2 text-sm hover:bg-orange-50"
-                    >
-                      {item}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </div>
-      )}
-    </div>
+    <form onSubmit={handleSearch} className="flex items-center gap-2">
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <Input
+          type="text"
+          placeholder="Search dark stories..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 w-64 bg-input border-border focus:border-primary transition-colors"
+        />
+      </div>
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="border-border hover:border-primary">
+            <Filter className="w-4 h-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 bg-card border-border">
+          <div className="space-y-4">
+            <h4 className="font-medium text-sm text-foreground">Search Filters</h4>
+            
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Category</label>
+              <select 
+                className="w-full p-2 bg-input border border-border rounded-md text-sm"
+                value={filters.category}
+                onChange={(e) => setFilters({...filters, category: e.target.value})}
+              >
+                <option value="">All Categories</option>
+                <option value="horror">Horror</option>
+                <option value="thriller">Thriller</option>
+                <option value="supernatural">Supernatural</option>
+                <option value="psychological">Psychological</option>
+                <option value="gothic">Gothic</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Popular Tags</label>
+              <div className="flex flex-wrap gap-1">
+                {["ghost", "murder", "haunted", "mystery", "dark", "suspense"].map((tag) => (
+                  <Badge 
+                    key={tag}
+                    variant="outline" 
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground text-xs"
+                    onClick={() => {
+                      const newTags = filters.tags.includes(tag) 
+                        ? filters.tags.filter(t => t !== tag)
+                        : [...filters.tags, tag];
+                      setFilters({...filters, tags: newTags});
+                    }}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </form>
   );
-}
+};
+
+export default Search;

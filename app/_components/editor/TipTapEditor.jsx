@@ -78,7 +78,7 @@ const TiptapEditor = ({
       StarterKit.configure({
         codeBlock: {
           HTMLAttributes: {
-            class: "rounded-md bg-gray-100 dark:bg-gray-800 p-4 font-mono",
+            class: "rounded-md bg-neutral-800/80 border border-red-500/20 p-4 font-mono text-green-300",
           },
         },
         bulletList: {
@@ -94,7 +94,7 @@ const TiptapEditor = ({
         blockquote: {
           HTMLAttributes: {
             class:
-              "border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic",
+              "border-l-4 border-red-500/50 pl-4 italic bg-red-500/5 py-2 rounded-r-md",
           },
         },
       }),
@@ -106,7 +106,7 @@ const TiptapEditor = ({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-blue-600 dark:text-blue-400 hover:underline",
+          class: "text-neutral-300 hover:text-white hover:underline transition-colors",
           rel: "noopener noreferrer",
           target: "_blank",
         },
@@ -119,7 +119,7 @@ const TiptapEditor = ({
       Highlight.configure({
         multicolor: true,
         HTMLAttributes: {
-          class: "px-1 rounded bg-yellow-200 dark:bg-yellow-800",
+          class: "px-1 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
         },
       }),
       TextStyle,
@@ -170,7 +170,7 @@ const TiptapEditor = ({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm dark:prose-invert max-w-none min-h-[300px] focus:outline-none p-4",
+          "prose prose-sm prose-invert max-w-none min-h-[300px] focus:outline-none p-6 text-neutral-100 prose-headings:text-red-400 prose-strong:text-red-300 prose-em:text-orange-300 prose-code:text-green-300 prose-code:bg-neutral-800/50 prose-blockquote:border-red-500/50 prose-blockquote:text-neutral-300 prose-a:text-neutral-300 prose-a:no-underline hover:prose-a:text-white hover:prose-a:underline selection:bg-red-500/30",
       },
     },
     onUpdate({ editor }) {
@@ -272,16 +272,16 @@ const TiptapEditor = ({
 
   if (!editor) {
     return (
-      <div className="border rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden min-h-[300px] flex items-center justify-center">
-        <div className="animate-pulse">Loading editor...</div>
+      <div className="border rounded-lg border-red-500/20 bg-gradient-to-br from-neutral-900/50 to-red-950/20 shadow-2xl overflow-hidden min-h-[300px] flex items-center justify-center">
+        <div className="animate-pulse text-neutral-300">Loading editor...</div>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-xs mt-8 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden flex flex-col">
+    <div className="border rounded-lg border-red-500/20 bg-gradient-to-br from-neutral-900/50 to-red-950/20 overflow-hidden flex flex-col shadow-2xl backdrop-blur-sm">
       {/* Toolbar */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700  dark:bg-gray-800">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 p-4 border-b border-red-500/20 bg-neutral-900/90 backdrop-blur-md">
         {/* History Section */}
         <div className="flex items-center gap-1">
           <Tooltip>
@@ -292,7 +292,7 @@ const TiptapEditor = ({
                 disabled={!editor.can().undo()}
                 onClick={() => editor.chain().focus().undo().run()}
                 aria-label="Undo"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200"
               >
                 <Undo2 className="w-4 h-4" />
               </Toggle>
@@ -308,7 +308,7 @@ const TiptapEditor = ({
                 disabled={!editor.can().redo()}
                 onClick={() => editor.chain().focus().redo().run()}
                 aria-label="Redo"
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200"
               >
                 <Redo2 className="w-4 h-4" />
               </Toggle>
@@ -328,8 +328,8 @@ const TiptapEditor = ({
                 pressed={editor.isActive("bold")}
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 aria-label="Bold"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                  editor.isActive("bold") ? "bg-gray-200 dark:bg-gray-700" : ""
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
+                  editor.isActive("bold") ? "bg-red-500/20 border-red-500/40 text-red-400" : ""
                 }`}
               >
                 <Bold className="w-4 h-4" />
@@ -345,9 +345,9 @@ const TiptapEditor = ({
                 pressed={editor.isActive("italic")}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 aria-label="Italic"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("italic")
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -364,9 +364,9 @@ const TiptapEditor = ({
                 pressed={editor.isActive("underline")}
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 aria-label="Underline"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("underline")
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -383,9 +383,9 @@ const TiptapEditor = ({
                 pressed={editor.isActive("strike")}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 aria-label="Strikethrough"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("strike")
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -402,9 +402,9 @@ const TiptapEditor = ({
                 pressed={editor.isActive("highlight")}
                 onClick={() => editor.chain().focus().toggleHighlight().run()}
                 aria-label="Highlight"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("highlight")
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-yellow-500/20 border-yellow-500/40 text-yellow-400"
                     : ""
                 }`}
               >
@@ -428,9 +428,9 @@ const TiptapEditor = ({
                   editor.chain().focus().toggleHeading({ level: 1 }).run()
                 }
                 aria-label="Heading 1"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("heading", { level: 1 })
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -449,9 +449,9 @@ const TiptapEditor = ({
                   editor.chain().focus().toggleHeading({ level: 2 }).run()
                 }
                 aria-label="Heading 2"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("heading", { level: 2 })
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -470,9 +470,9 @@ const TiptapEditor = ({
                   editor.chain().focus().toggleHeading({ level: 3 }).run()
                 }
                 aria-label="Heading 3"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("heading", { level: 3 })
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -489,9 +489,9 @@ const TiptapEditor = ({
                 pressed={editor.isActive("paragraph")}
                 onClick={() => editor.chain().focus().setParagraph().run()}
                 aria-label="Paragraph"
-                className={`hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 ${
                   editor.isActive("paragraph")
-                    ? "bg-gray-200 dark:bg-gray-700"
+                    ? "bg-red-500/20 border-red-500/40 text-red-400"
                     : ""
                 }`}
               >
@@ -789,7 +789,7 @@ const TiptapEditor = ({
                 editor.chain().focus().clearNodes().unsetAllMarks().run()
               }
               aria-label="Clear Formatting"
-              className="hover:bg-gray-100 dark:hover:bg-gray-700 text-red-500 dark:text-red-400"
+              className="hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-200 text-red-400"
             >
               <Eraser className="w-4 h-4" />
             </Button>
@@ -799,10 +799,10 @@ const TiptapEditor = ({
       </div>
 
       {/* Editor Content */}
-      <div className="flex-1 overflow-y-auto max-h-[500px]">
+      <div className="flex-1 overflow-y-auto max-h-[500px] bg-gradient-to-b from-neutral-900/80 to-neutral-950/90">
         <EditorContent
           editor={editor}
-          className="rounded-b-lg bg-white dark:bg-gray-900 min-h-[300px]"
+          className="rounded-b-lg bg-transparent min-h-[300px] text-neutral-100"
         />
       </div>
       {/* Link Dialog */}

@@ -18,9 +18,9 @@ export async function GET(req) {
       );
     }
 
-    const story = await Story.findOne({ slug, status: "draft" }).populate(
+    const story = await Story.findOne({ slug, status: "published" }).populate(
       "author",
-      "name email username verified photo"
+      "name email username verified photo role"
     );
 
     if (!story) {
