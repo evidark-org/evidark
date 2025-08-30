@@ -35,7 +35,7 @@ export async function POST(req) {
       email,
       password,
       username: username || email.split('@')[0],
-      role: "author" // Default to author for story platform
+      role: "user" // Default to user role
     });
 
     return NextResponse.json({

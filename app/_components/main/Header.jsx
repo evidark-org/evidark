@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import Search from "./Search";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import OnlineAvatar from "@/app/_components/ui/OnlineAvatar";
 import { Badge } from "@/components/ui/badge";
 import {
   PenTool,
@@ -26,6 +27,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  MessageCircle,
 } from "lucide-react";
 import {
   NavigationMenu,
@@ -114,6 +116,20 @@ const Header = async () => {
               <span className="font-medium">Community</span>
             </Link>
           </Button>
+
+          {session?.user && (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200"
+            >
+              <Link href="/chat" className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                <span className="font-medium">Dark Chat</span>
+              </Link>
+            </Button>
+          )}
         </nav>
       </div>
 
@@ -138,20 +154,17 @@ const Header = async () => {
                 </Link>
               </Button>
             )}
-            {/* Write Story Button - Enhanced */}
-            {(session?.user?.role === "author" ||
-              session?.user?.role === "admin") && (
-              <Button
-                asChild
-                size="sm"
-                className="spooky-glow bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg shadow-red-500/25 transition-all duration-300"
-              >
-                <Link href="/create" className="flex items-center gap-2">
-                  <Skull className="w-4 h-4" />
-                  <span className="font-medium">Write Tale</span>
-                </Link>
-              </Button>
-            )}
+            {/* Write Story Button - Available to all users */}
+            <Button
+              asChild
+              size="sm"
+              className="spooky-glow bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white border-0 shadow-lg shadow-red-500/25 transition-all duration-300"
+            >
+              <Link href="/create" className="flex items-center gap-2">
+                <Skull className="w-4 h-4" />
+                <span className="font-medium">Write Tale</span>
+              </Link>
+            </Button>
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -160,17 +173,15 @@ const Header = async () => {
                   variant="ghost"
                   className="relative h-10 w-10 rounded-full border-2 border-primary/30 hover:border-primary/60 transition-all duration-200"
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={session?.user?.image}
-                      alt={session?.user?.name}
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-700 text-white text-sm font-bold">
-                      {session?.user?.name?.[0] ||
-                        session?.user?.email?.[0] ||
-                        "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <OnlineAvatar
+                    src={session?.user?.image}
+                    alt={session?.user?.name}
+                    fallback={session?.user?.name?.[0] ||
+                      session?.user?.email?.[0] ||
+                      "U"}
+                    isOnline={true}
+                    size="sm"
+                  />
                   {session?.user?.role === "admin" && (
                     <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1">
                       <Crown className="w-2 h-2 text-black" />
@@ -230,6 +241,15 @@ const Header = async () => {
                   >
                     <Heart className="w-4 h-4" />
                     <span>Liked Stories</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/chat"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Dark Chat</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

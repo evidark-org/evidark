@@ -249,7 +249,7 @@ const Page = async ({ params }) => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Story Actions */}
-            <Card className="bg-card/50 backdrop-blur-sm border-border sticky top-24">
+            <Card className="bg-card/50 backdrop-blur-sm border-border sticky top-24 z-10">
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <Button

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import OnlineAvatar from "@/app/_components/ui/OnlineAvatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, 
@@ -20,7 +21,8 @@ import {
   Crown,
   Skull,
   Ghost,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
@@ -31,7 +33,51 @@ export default function UserProfile({ user, session }) {
   const [followLoading, setFollowLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
-  const isCurrentUser = session?.user?.userId === user._id.toString();
+  const handleStartChat = async () => {
+    if (!session) {
+      toast.error("Please sign in to start a chat");
+      return;
+    }
+
+    try {
+      console.log('Starting chat with user:', user._id);
+      console.log('Session:', session);
+      
+      const requestData = {
+        type: 'private',
+        participantIds: [user._id.toString()]
+      };
+      console.log('Sending request data:', requestData);
+      
+      const response = await fetch('/api/v1/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+      });
+
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Chat API response:', data);
+      
+      if (response.ok) {
+        // Redirect to chat with this user
+        toast.success('Opening chat...');
+        window.location.href = `/chat?chatId=${data.chat._id}`;
+      } else if (response.status === 409) {
+        // Chat already exists, redirect to it
+        toast.success('Opening existing chat...');
+        window.location.href = `/chat?chatId=${data.chatId}`;
+      } else {
+        console.error('Chat API error:', data);
+        toast.error(data.error || 'Failed to start chat');
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast.error('Failed to start chat');
+    }
+  };
+
+  const isCurrentUser = session?.user?.id === user._id.toString();
 
   const handleFollow = async () => {
     if (!session) {
@@ -88,12 +134,14 @@ export default function UserProfile({ user, session }) {
           <div className="flex flex-col md:flex-row items-start gap-6">
             {/* Avatar */}
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-primary/20">
-                <AvatarImage src={user.photo} alt={user.name} />
-                <AvatarFallback className="text-3xl bg-primary/10">
-                  {user.name?.[0] || user.username?.[0] || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <OnlineAvatar
+                src={user.photo}
+                alt={user.name}
+                fallback={user.name?.[0] || user.username?.[0] || 'U'}
+                isOnline={user.isOnline}
+                size="2xl"
+                className="border-4 border-primary/20"
+              />
               {user.role === 'admin' && (
                 <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-2">
                   <Crown className="w-4 h-4 text-black" />
@@ -191,9 +239,13 @@ export default function UserProfile({ user, session }) {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Message
+                  <Button 
+                    variant="outline" 
+                    onClick={handleStartChat}
+                    className="spooky-glow border-red-600/60 bg-red-950/30 text-red-200 hover:bg-red-900/50 hover:text-red-100 hover:border-red-500/80 transition-all duration-200 shadow-lg hover:shadow-red-900/20"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Dark Chat
                   </Button>
                 </>
               )}

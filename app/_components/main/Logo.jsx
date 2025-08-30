@@ -18,7 +18,7 @@ const Logo = () => {
           <Eye className="w-3 h-3 text-foreground absolute top-2 left-2.5 group-hover:text-primary transition-colors duration-300" />
         </div>
         <div
-          className={`${creepster.className} text-3xl tracking-wider text-primary`}
+          className={`${creepster.className} text-2xl tracking-wider text-primary`}
           style={{ textShadow: "0 0 20px rgba(220, 38, 38, 0.3)" }}
         >
           EviDark

@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     // Roles & auth
     role: {
       type: String,
-      enum: ["user", "admin", "guides"],
+      enum: ["user", "admin", "guide", "author", "reader"],
       default: "user",
     },
     verified: {
@@ -72,6 +72,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "Personal",
       enum: ["Personal", "Organization"],
+    },
+
+    // Chat & online status
+    isOnline: {
+      type: Boolean,
+      default: false
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now
+    },
+    avatar: {
+      type: String,
+      default: ""
     },
   },
   {
