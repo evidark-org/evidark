@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 import { auth } from "@/lib/auth";
 import {
   Heart,
@@ -208,9 +209,11 @@ const Page = async ({ params }) => {
                         key={m._id}
                         className="overflow-hidden rounded-lg border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 group"
                       >
-                        <img
+                        <Image
                           src={m.url}
                           alt={m.type}
+                          width={400}
+                          height={256}
                           className="object-cover w-full h-64 group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>

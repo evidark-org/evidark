@@ -109,7 +109,7 @@ const page = () => {
               </div>
 
               <p className={`${inter.className} text-xs text-muted-foreground leading-relaxed`}>
-                By continuing, you agree to EviDark's{" "}
+                By continuing, you agree to EviDark&apos;s{" "}
                 <span className="text-primary hover:underline cursor-pointer">
                   Terms of Service
                 </span>{" "}

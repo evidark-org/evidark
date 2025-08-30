@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Flame, Eye, Heart, MessageCircle, Clock } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 async function getTrendingStories() {
   try {
     const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/stories/trending`, {
